@@ -29,11 +29,39 @@ interface DCAAccountType {
 
 class JupiterDCAAPI {
   private dca!: DCA;
+  private connection: Connection;
   private jupiterApiUrl = 'https://price.jup.ag/v4';
 
   constructor() {
-    const connection = new Connection(import.meta.env.VITE_HELIUS_RPC_URL);
-    this.dca = new DCA(connection, Network.MAINNET);
+    this.connection = new Connection(import.meta.env.VITE_HELIUS_RPC_URL);
+    this.initDCA();
+  }
+
+  private async initDCA() {
+    try {
+      this.dca = new DCA(this.connection, Network.MAINNET);
+    } catch (error) {
+      console.error('Failed to initialize DCA:', error);
+      // Try to reconnect
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      this.connection = new Connection(import.meta.env.VITE_HELIUS_RPC_URL);
+      this.initDCA();
+    }
+  }
+
+  private async withRetry<T>(operation: () => Promise<T>, maxRetries = 3): Promise<T> {
+    let lastError: any;
+    for (let i = 0; i < maxRetries; i++) {
+      try {
+        return await operation();
+      } catch (error) {
+        console.log(`Attempt ${i + 1} failed:`, error);
+        lastError = error;
+        // Wait longer between each retry
+        await new Promise(resolve => setTimeout(resolve, 1000 * (i + 1)));
+      }
+    }
+    throw lastError;
   }
 
   private async getCurrentPrice(mint: string): Promise<{ price: number; mint: string }> {
@@ -90,9 +118,14 @@ class JupiterDCAAPI {
         throw new Error('DCA SDK not initialized');
       }
 
-      // 1. Get all accounts first
-      const allAccounts = await this.dca.getAll();
-      console.log('Total accounts fetched:', allAccounts.length);
+      // Wrap the fetch in retry logic
+      const allAccounts = await this.withRetry(async () => {
+        const accounts = await this.dca.getAll();
+        if (!accounts || accounts.length === 0) {
+          throw new Error('No accounts returned');
+        }
+        return accounts;
+      });
 
       // After getting allAccounts
       console.log('Account details:', allAccounts.map(acc => ({

@@ -76,25 +76,24 @@ export const DCADashboard: React.FC = () => {
     try {
       console.log('Starting data fetch...');
       setLoading(true);
+      setError(null); // Clear any previous errors
       
       const data = await jupiterDCA.getDCAAccounts();
-      console.log('Received data:', {
-        positions: data.positions.length,
-        summary: Object.keys(data.summary),
-        chartData: Object.keys(data.chartData)
-      });
+      
+      if (!data.positions || !data.summary) {
+        throw new Error('Invalid data received');
+      }
       
       setPositions(data.positions);
       setSummaryData(data.summary);
       setChartData(data.chartData);
       setLastUpdate(new Date());
-      
-      console.log('States updated, setting loading to false');
       setLoading(false);
     } catch (err) {
       console.error('Failed to fetch DCA data:', err);
-      setError('Failed to fetch DCA data');
-      setLoading(false);
+      setError('Failed to fetch data. Retrying...');
+      // Try again after a delay
+      setTimeout(fetchData, 2000);
     }
   };
 
