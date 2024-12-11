@@ -197,23 +197,23 @@ export const DCADashboard: React.FC = () => {
   });
 
   return (
-    <div className="container mx-auto p-5">
+    <div className="container mx-auto p-2 sm:p-5">
       {loading && <LoadingSpinner />}
       
       {/* Status Banner */}
-      <div className="bg-[#1a1a1a] p-4 mb-5 rounded-lg border-l-4 border-yellow-500 flex justify-between items-center">
-        <div className="text-gray-300">
+      <div className="bg-[#1a1a1a] p-3 sm:p-4 mb-3 sm:mb-5 rounded-lg border-l-4 border-yellow-500 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
+        <div className="text-gray-300 text-sm sm:text-base">
           Data as of {lastUpdate.toLocaleString()}
         </div>
-        <div className="flex gap-4 items-center">
+        <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 items-start sm:items-center">
           <button 
-            className="bg-[#3a3a3a] px-4 py-2 rounded hover:bg-[#4a4a4a]"
+            className="bg-[#3a3a3a] px-3 py-1 sm:px-4 sm:py-2 rounded hover:bg-[#4a4a4a] text-sm sm:text-base"
             onClick={fetchData}
           >
             Refresh Now
           </button>
           <div className="flex items-center gap-2">
-            <label htmlFor="auto-refresh">Auto-refresh</label>
+            <label htmlFor="auto-refresh" className="text-sm sm:text-base">Auto-refresh</label>
             <input
               type="checkbox"
               id="auto-refresh"
@@ -226,13 +226,13 @@ export const DCADashboard: React.FC = () => {
       </div>
 
       {/* Main Content */}
-      <div className="grid grid-cols-2 gap-5">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-5">
         {/* LOGOS Section */}
-        <section className="bg-[#1a1a1a] rounded-lg p-5">
-          <h2 className="text-xl font-bold mb-4">LOGOS DCA</h2>
-          <div className="grid grid-cols-2 gap-4 mb-5">
+        <section className="bg-[#1a1a1a] rounded-lg p-3 sm:p-5">
+          <h2 className="text-lg sm:text-xl font-bold mb-3 sm:mb-4">LOGOS DCA</h2>
+          <div className="grid grid-cols-2 gap-2 sm:gap-4 mb-3 sm:mb-5">
             {/* Buy Stats */}
-            <div className="bg-[#2a2a2a] p-4 rounded-lg">
+            <div className="bg-[#2a2a2a] p-2 sm:p-4 rounded-lg">
               <div className="flex items-center gap-2 mb-2">
                 <div className="w-2 h-2 rounded-full bg-green-500"></div>
                 <span className="text-gray-400">Buy Orders</span>
@@ -246,7 +246,7 @@ export const DCADashboard: React.FC = () => {
             </div>
 
             {/* Sell Stats */}
-            <div className="bg-[#2a2a2a] p-4 rounded-lg">
+            <div className="bg-[#2a2a2a] p-2 sm:p-4 rounded-lg">
               <div className="flex items-center gap-2 mb-2">
                 <div className="w-2 h-2 rounded-full bg-red-500"></div>
                 <span className="text-gray-400">Sell Orders</span>
@@ -261,24 +261,26 @@ export const DCADashboard: React.FC = () => {
           </div>
 
           {/* Chart */}
-          <div className="bg-[#2a2a2a] p-4 rounded-lg h-[300px] mb-5">
+          <div className="bg-[#2a2a2a] p-2 sm:p-4 rounded-lg h-[250px] sm:h-[300px] mb-3 sm:mb-5">
             <Line data={createChartData('LOGOS')} options={chartOptions} />
           </div>
 
           {/* Positions */}
-          <div className="space-y-4">
+          <div className="space-y-2 sm:space-y-4">
             {positions
               .filter(position => position.token === 'LOGOS')
               .map((position) => (
                 <div 
                   key={position.id} 
-                  className={`bg-[#2a2a2a] p-4 rounded-lg border-l-4 ${
+                  className={`bg-[#2a2a2a] p-2 sm:p-4 rounded-lg border-l-4 ${
                     position.type === 'BUY' ? 'border-green-500' : 'border-red-500'
                   }`}
                 >
                   <div className="flex justify-between mb-2">
-                    <span>{position.type === 'BUY' ? '🟢 BUY' : '🔴 SELL'}</span>
-                    <span className="text-gray-500">
+                    <span className="text-sm sm:text-base">
+                      {position.type === 'BUY' ? '🟢 BUY' : '🔴 SELL'}
+                    </span>
+                    <span className="text-gray-500 text-xs sm:text-sm">
                       {new Date(position.lastUpdate).toLocaleString()}
                     </span>
                   </div>
@@ -317,11 +319,11 @@ export const DCADashboard: React.FC = () => {
         </section>
 
         {/* CHAOS Section */}
-        <section className="bg-[#1a1a1a] rounded-lg p-5">
-          <h2 className="text-xl font-bold mb-4">CHAOS DCA</h2>
-          <div className="grid grid-cols-2 gap-4 mb-5">
+        <section className="bg-[#1a1a1a] rounded-lg p-3 sm:p-5">
+          <h2 className="text-lg sm:text-xl font-bold mb-3 sm:mb-4">CHAOS DCA</h2>
+          <div className="grid grid-cols-2 gap-2 sm:gap-4 mb-3 sm:mb-5">
             {/* Buy Stats */}
-            <div className="bg-[#2a2a2a] p-4 rounded-lg">
+            <div className="bg-[#2a2a2a] p-2 sm:p-4 rounded-lg">
               <div className="flex items-center gap-2 mb-2">
                 <div className="w-2 h-2 rounded-full bg-green-500"></div>
                 <span className="text-gray-400">Buy Orders</span>
@@ -335,7 +337,7 @@ export const DCADashboard: React.FC = () => {
             </div>
 
             {/* Sell Stats */}
-            <div className="bg-[#2a2a2a] p-4 rounded-lg">
+            <div className="bg-[#2a2a2a] p-2 sm:p-4 rounded-lg">
               <div className="flex items-center gap-2 mb-2">
                 <div className="w-2 h-2 rounded-full bg-red-500"></div>
                 <span className="text-gray-400">Sell Orders</span>
@@ -350,24 +352,26 @@ export const DCADashboard: React.FC = () => {
           </div>
 
           {/* Chart */}
-          <div className="bg-[#2a2a2a] p-4 rounded-lg h-[300px] mb-5">
+          <div className="bg-[#2a2a2a] p-2 sm:p-4 rounded-lg h-[250px] sm:h-[300px] mb-3 sm:mb-5">
             <Line data={createChartData('CHAOS')} options={chartOptions} />
           </div>
 
           {/* Positions */}
-          <div className="space-y-4">
+          <div className="space-y-2 sm:space-y-4">
             {positions
               .filter(position => position.token === 'CHAOS')
               .map((position) => (
                 <div 
                   key={position.id} 
-                  className={`bg-[#2a2a2a] p-4 rounded-lg border-l-4 ${
+                  className={`bg-[#2a2a2a] p-2 sm:p-4 rounded-lg border-l-4 ${
                     position.type === 'BUY' ? 'border-green-500' : 'border-red-500'
                   }`}
                 >
                   <div className="flex justify-between mb-2">
-                    <span>{position.type === 'BUY' ? '🟢 BUY' : '🔴 SELL'}</span>
-                    <span className="text-gray-500">
+                    <span className="text-sm sm:text-base">
+                      {position.type === 'BUY' ? '🟢 BUY' : '🔴 SELL'}
+                    </span>
+                    <span className="text-gray-500 text-xs sm:text-sm">
                       {new Date(position.lastUpdate).toLocaleString()}
                     </span>
                   </div>
