@@ -4,7 +4,6 @@ import { TOKENS } from './tokenConfig';
 import { LimitOrder } from '../types/dca';
 
 const JUPITER_LIMIT_PROGRAM_ID = 'j1o2qRpjcyUwEvwtcfhEQefh773ZgjxcVRry7LDqg5X';
-const TOKEN_LIST_URL = 'https://raw.githubusercontent.com/solana-labs/token-list/main/src/tokens/solana.tokenlist.json';
 
 interface TokenInfo {
   symbol: string;
@@ -13,8 +12,6 @@ interface TokenInfo {
   decimals: number;
   logoURI?: string;
 }
-
-let tokenListCache: TokenInfo[] = [];
 
 function getTokenSymbol(mint: string): string {
   const token = Object.values(TOKENS).find(t => t.address === mint);
@@ -47,29 +44,7 @@ async function getTokenInfo(connection: Connection, mint: string): Promise<Token
     };
   }
 
-  // Check token list cache
-  if (tokenListCache.length === 0) {
-    try {
-      const response = await fetch(TOKEN_LIST_URL);
-      const data = await response.json();
-      tokenListCache = data.tokens;
-    } catch (error) {
-      console.error('❌ Error fetching token list:', error);
-    }
-  }
-
-  const tokenInfo = tokenListCache.find(t => t.address === mint);
-  if (tokenInfo) {
-    console.log('✅ Found in token list:', tokenInfo);
-    return {
-      address: mint,
-      symbol: tokenInfo.symbol,
-      decimals: tokenInfo.decimals,
-      isDecimalKnown: true
-    };
-  }
-
-  // Must get decimals from chain
+  // If not in our config, get decimals from chain
   try {
     const mintInfo = await connection.getParsedAccountInfo(new PublicKey(mint));
     if (mintInfo.value && 'parsed' in mintInfo.value.data) {
@@ -141,7 +116,11 @@ function decodeMetadata(buffer: Buffer): MetaplexData {
 
 export const runAnalyzer = async () => {
   try {
-    const connection = new Connection('https://mainnet.helius-rpc.com/?api-key=3632daae-4968-4896-9d0d-43f382188194');
+    const heliusUrl = process.env.HELIUS_RPC_URL || process.env.VITE_HELIUS_RPC_URL;
+    if (!heliusUrl) {
+      throw new Error('HELIUS_RPC_URL environment variable is not set');
+    }
+    const connection = new Connection(heliusUrl);
     const programId = new PublicKey(JUPITER_LIMIT_PROGRAM_ID);
     const CHAOS_MINT = new PublicKey(TOKENS.CHAOS.address);
     const LOGOS_MINT = new PublicKey(TOKENS.LOGOS.address);
