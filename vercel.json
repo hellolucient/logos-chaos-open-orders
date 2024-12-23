@@ -1,7 +1,7 @@
 {
   "functions": {
     "api/**/*": {
-      "runtime": "@vercel/node@3.0.0"
+      "runtime": "@vercel/node@2.15.10"
     }
   },
   "buildCommand": "npm run build",
@@ -11,5 +11,10 @@
       "src": "/api/(.*)",
       "dest": "/api/$1"
     }
-  ]
+  ],
+  "build": {
+    "env": {
+      "NODE_VERSION": "18.x"
+    }
+  }
 } 
