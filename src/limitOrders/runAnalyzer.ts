@@ -496,9 +496,12 @@ async function main() {
     console.log(`- Text output: ${outputFile}`);
     console.log('- UI data: public/limit-orders.json');
 
+    // Return the orders
+    return uiOrders;
+
   } catch (error) {
     console.error('Error in analyzer:', error);
-    process.exit(1);
+    throw error;
   }
 }
 
@@ -509,5 +512,11 @@ main().catch(error => {
 });
 
 export const runAnalyzer = async () => {
-  // ... existing code ...
+  try {
+    const orders = await main();
+    return orders;  // Return the orders array
+  } catch (error) {
+    console.error('Error in runAnalyzer:', error);
+    throw error;  // Re-throw to be caught by API
+  }
 }; 
