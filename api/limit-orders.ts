@@ -3,8 +3,12 @@ import { runAnalyzer } from '../src/limitOrders/runAnalyzer';
 
 const handler: VercelApiHandler = async (req, res) => {
   try {
+    console.log('Starting limit orders API request...');
+    console.log('Helius URL configured:', !!process.env.HELIUS_RPC_URL);
+    
     // Instead of writing to file, just return the data directly
     const orders = await runAnalyzer();
+    console.log(`Successfully processed ${orders.length} orders`);
     
     res.setHeader('Content-Type', 'application/json');
     res.setHeader('Cache-Control', 's-maxage=300');
@@ -26,9 +30,18 @@ const handler: VercelApiHandler = async (req, res) => {
 
   } catch (error) {
     console.error('API Error:', error);
+    // Log more details about the error
+    if (error instanceof Error) {
+      console.error('Error name:', error.name);
+      console.error('Error message:', error.message);
+      console.error('Error stack:', error.stack);
+    }
+    
+    // Send a more structured error response
     res.status(500).json({ 
       error: 'Failed to fetch orders',
-      details: error instanceof Error ? error.message : String(error)
+      details: error instanceof Error ? error.message : String(error),
+      timestamp: new Date().toISOString()
     });
   }
 };

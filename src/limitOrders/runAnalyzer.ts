@@ -120,7 +120,18 @@ export const runAnalyzer = async () => {
     if (!heliusUrl) {
       throw new Error('HELIUS_RPC_URL environment variable is not set');
     }
+    console.log('Initializing connection...');
     const connection = new Connection(heliusUrl);
+
+    // Test connection
+    try {
+      await connection.getSlot();
+      console.log('Connection test successful');
+    } catch (connError: any) {
+      console.error('Connection test failed:', connError);
+      throw new Error(`Failed to connect to Helius RPC: ${connError.message}`);
+    }
+
     const programId = new PublicKey(JUPITER_LIMIT_PROGRAM_ID);
     const CHAOS_MINT = new PublicKey(TOKENS.CHAOS.address);
     const LOGOS_MINT = new PublicKey(TOKENS.LOGOS.address);
@@ -136,17 +147,16 @@ export const runAnalyzer = async () => {
       programId: JUPITER_LIMIT_PROGRAM_ID,
       dataSize: 372,
       chaosMint: CHAOS_MINT.toBase58(),
-      logosMint: LOGOS_MINT.toBase58(),
-      // Update to your actual order
-      yourOrder: 'AmdQGtE2Wz2vtUJ3arKTVgVsDtLxdkuZotb8d6DQKc6r'
+      logosMint: LOGOS_MINT.toBase58()
     });
 
+    console.log('Fetching program accounts...');
     const [chaosSellOrders, logosSellOrders, chaosBuyOrders, logosBuyOrders] = await Promise.all([
       // Sell orders (CHAOS/LOGOS as input)
       connection.getProgramAccounts(programId, {
         filters: [
           { dataSize: 372 },
-          { memcmp: { offset: 40, bytes: CHAOS_MINT.toBase58() }}  // Add comment: Input mint offset
+          { memcmp: { offset: 40, bytes: CHAOS_MINT.toBase58() }}
         ]
       }).then(orders => orders.map(o => ({ ...o, type: 'SELL' as const }))),
       connection.getProgramAccounts(programId, {
@@ -159,16 +169,19 @@ export const runAnalyzer = async () => {
       connection.getProgramAccounts(programId, {
         filters: [
           { dataSize: 372 },
-          { memcmp: { offset: 72, bytes: CHAOS_MINT.toBase58() }}  // Output mint offset
+          { memcmp: { offset: 72, bytes: CHAOS_MINT.toBase58() }}
         ]
       }).then(orders => orders.map(o => ({ ...o, type: 'BUY' as const }))),
       connection.getProgramAccounts(programId, {
         filters: [
           { dataSize: 372 },
-          { memcmp: { offset: 72, bytes: LOGOS_MINT.toBase58() }}  // Different offset for output mint
+          { memcmp: { offset: 72, bytes: LOGOS_MINT.toBase58() }}
         ]
       }).then(orders => orders.map(o => ({ ...o, type: 'BUY' as const })))
-    ]);
+    ]).catch(error => {
+      console.error('Failed to fetch program accounts:', error);
+      throw new Error(`Failed to fetch program accounts: ${error.message}`);
+    });
 
     // Log counts after fetch
     console.log('Order Counts After Fetch:', {
