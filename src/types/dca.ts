@@ -4,6 +4,7 @@ export interface TokenInfo {
   address: string;
   symbol: string;
   decimals: number;
+  isDecimalKnown: boolean;
 }
 
 export interface DCAOrder {
@@ -20,17 +21,49 @@ export interface DCAOrder {
   averagePrice?: number;
 }
 
+export interface LimitOrder {
+  id: string;
+  maker: PublicKey;
+  inputMint: TokenInfo;
+  outputMint: TokenInfo;
+  makingAmount: number;
+  takingAmount: number;
+  oriMakingAmount: number;
+  oriTakingAmount: number;
+  borrowMakingAmount: number;
+  status: 'open' | 'filled' | 'cancelled';
+  createdAt: string;
+  updatedAt: string;
+  expiredAt?: string;
+  tokenType: 'LOGOS' | 'CHAOS';
+  orderType: 'BUY' | 'SELL';
+  feeBps: number;
+  feeAccount: string;
+  bump: number;
+  inputTokenProgram: string;
+  outputTokenProgram: string;
+  inputMintReserve: string;
+  uniqueId: string;
+}
+
 export interface DCASummary {
   totalOrders: number;
   activeOrders: number;
   totalVolume: number;
   averageOrderSize: number;
+  activeLimitOrders: number;
+  totalLimitOrders: number;
 }
 
 export interface ChartDataPoint {
   timestamp: number;
   buyVolume: number;
   sellVolume: number;
+  buyOrders: number;
+  sellOrders: number;
+  limitOrderVolume?: number;
+  dcaVolume?: number;
+  averagePrice?: number;
 }
 
 export interface TokenSummary {
@@ -40,12 +73,16 @@ export interface TokenSummary {
   sellVolume: number;
   buyVolumeUSDC: number;
   sellVolumeUSDC: number;
+  price: number;
+  limitOrders?: number;
+  limitOrderVolume?: number;
+  limitVolumeUSDC?: number;
 }
 
-export interface Position {
+export type Position = {
   id: string;
   token: string;
-  type: 'BUY' | 'SELL';
+  type: "BUY" | "SELL";
   inputToken: string;
   outputToken: string;
   inputAmount: number;
@@ -55,8 +92,22 @@ export interface Position {
   cycleFrequency: number;
   lastUpdate: number;
   publicKey: string;
-  targetPrice?: number;
-  currentPrice?: number;
+  targetPrice: number;
+  currentPrice: number;
   priceToken: string;
   estimatedOutput?: number;
-} 
+  totalCycles: number;
+  completedCycles: number;
+  isActive: boolean;
+  executionPrice: number;
+  maxPrice?: number | "No limit";
+  minPrice?: number;
+  remainingAmount: number;
+  estimatedTokens: number;
+  remainingInCycle: number;
+};
+
+export type Order = {
+  type: 'dca' | 'limit';
+  order: DCAOrder | LimitOrder;
+}; 
