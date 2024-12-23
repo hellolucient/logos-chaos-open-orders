@@ -1,5 +1,5 @@
 import type { VercelApiHandler } from '@vercel/node';
-import { runAnalyzer } from '../src/limitOrders/runAnalyzer';
+import { runAnalyzer } from '../src/limitOrders/runAnalyzer.js';
 
 const handler: VercelApiHandler = async (req, res) => {
   try {
