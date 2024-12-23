@@ -160,9 +160,21 @@ export function DCADashboard({ connection }: DCADashboardProps) {
   const fetchLimitOrders = async () => {
     try {
       setLimitOrdersLoading(true);
-      const response = await fetch('/api/limit-orders');
-      const { orders } = await response.json();
       
+      // Add error logging
+      console.log('Fetching limit orders...');
+      const response = await fetch('/api/limit-orders');
+      
+      // Log response details
+      console.log('Response status:', response.status);
+      const text = await response.text();
+      console.log('Response text:', text);
+      
+      // Parse as JSON
+      const data = JSON.parse(text);
+      console.log('Parsed data:', data);
+      
+      const { orders } = data;
       const formattedOrders = orders.map((order: Omit<LimitOrder, 'maker'> & { maker: string }) => ({
         ...order,
         maker: new PublicKey(order.maker)
