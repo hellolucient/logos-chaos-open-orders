@@ -1,0 +1,11 @@
+{
+  "rewrites": [
+    { "source": "/api/(.*)", "destination": "/api/limit-orders" }
+  ],
+  "functions": {
+    "api/limit-orders": {
+      "memory": 1024,
+      "maxDuration": 10
+    }
+  }
+} 

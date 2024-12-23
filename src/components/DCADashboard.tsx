@@ -160,10 +160,9 @@ export function DCADashboard({ connection }: DCADashboardProps) {
   const fetchLimitOrders = async () => {
     try {
       setLimitOrdersLoading(true);
-      const response = await fetch('/limit-orders.json');
+      const response = await fetch('/api/limit-orders');
       const { orders } = await response.json();
       
-      // Convert maker addresses back to PublicKey
       const formattedOrders = orders.map((order: Omit<LimitOrder, 'maker'> & { maker: string }) => ({
         ...order,
         maker: new PublicKey(order.maker)

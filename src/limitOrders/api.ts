@@ -81,4 +81,6 @@ export function formatOrderForUI(analyzerOutput: string): LimitOrder[] {
 function getTokenSymbol(mint: string): string {
   const token = Object.values(TOKENS).find(t => t.address === mint);
   return token?.name || 'UNKNOWN';
-} 
+}
+
+export { runAnalyzer as analyzeOrders } from './runAnalyzer'; 
