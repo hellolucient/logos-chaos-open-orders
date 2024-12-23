@@ -2,12 +2,8 @@ import { Connection, PublicKey } from '@solana/web3.js';
 import { analyzeOrder } from './orderAnalyzer';
 import { TOKENS } from './tokenConfig';
 import { LimitOrder } from '../types/dca';
-import * as fs from 'fs';
-import * as path from 'path';
-import { Buffer } from 'buffer';
 
 const JUPITER_LIMIT_PROGRAM_ID = 'j1o2qRpjcyUwEvwtcfhEQefh773ZgjxcVRry7LDqg5X';
-const METADATA_PROGRAM_ID = 'metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s';
 const TOKEN_LIST_URL = 'https://raw.githubusercontent.com/solana-labs/token-list/main/src/tokens/solana.tokenlist.json';
 
 interface TokenInfo {
@@ -143,43 +139,29 @@ function decodeMetadata(buffer: Buffer): MetaplexData {
   }
 }
 
-async function main() {
-  // Create directories if they don't exist
-  const dirs = ['analysis_output', 'public'];
-  for (const dir of dirs) {
-    if (!fs.existsSync(dir)) {
-      fs.mkdirSync(dir);
-    }
-  }
-
-  const connection = new Connection('https://mainnet.helius-rpc.com/?api-key=3632daae-4968-4896-9d0d-43f382188194');
-  const programId = new PublicKey(JUPITER_LIMIT_PROGRAM_ID);
-  const CHAOS_MINT = new PublicKey(TOKENS.CHAOS.address);
-  const LOGOS_MINT = new PublicKey(TOKENS.LOGOS.address);
-
-  // Add debug for memcmp
-  console.log('Memcmp Debug:', {
-    CHAOS_MINT: CHAOS_MINT.toBase58(),
-    LOGOS_MINT: LOGOS_MINT.toBase58()
-  });
-
-  // Add more detailed debug
-  console.log('Query Debug:', {
-    programId: JUPITER_LIMIT_PROGRAM_ID,
-    dataSize: 372,
-    chaosMint: CHAOS_MINT.toBase58(),
-    logosMint: LOGOS_MINT.toBase58(),
-    // Update to your actual order
-    yourOrder: 'AmdQGtE2Wz2vtUJ3arKTVgVsDtLxdkuZotb8d6DQKc6r'
-  });
-
-  // Create SINGLE output file
-  const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-  const outputFile = `analysis_output/order_analysis_${timestamp}.txt`;
-  const outputStream = fs.createWriteStream(outputFile);
-  let analyzerOutput = '';  // Store analyzer output for parsing
-
+export const runAnalyzer = async () => {
   try {
+    const connection = new Connection('https://mainnet.helius-rpc.com/?api-key=3632daae-4968-4896-9d0d-43f382188194');
+    const programId = new PublicKey(JUPITER_LIMIT_PROGRAM_ID);
+    const CHAOS_MINT = new PublicKey(TOKENS.CHAOS.address);
+    const LOGOS_MINT = new PublicKey(TOKENS.LOGOS.address);
+
+    // Add debug for memcmp
+    console.log('Memcmp Debug:', {
+      CHAOS_MINT: CHAOS_MINT.toBase58(),
+      LOGOS_MINT: LOGOS_MINT.toBase58()
+    });
+
+    // Add more detailed debug
+    console.log('Query Debug:', {
+      programId: JUPITER_LIMIT_PROGRAM_ID,
+      dataSize: 372,
+      chaosMint: CHAOS_MINT.toBase58(),
+      logosMint: LOGOS_MINT.toBase58(),
+      // Update to your actual order
+      yourOrder: 'AmdQGtE2Wz2vtUJ3arKTVgVsDtLxdkuZotb8d6DQKc6r'
+    });
+
     const [chaosSellOrders, logosSellOrders, chaosBuyOrders, logosBuyOrders] = await Promise.all([
       // Sell orders (CHAOS/LOGOS as input)
       connection.getProgramAccounts(programId, {
@@ -246,13 +228,6 @@ async function main() {
       );
     }
 
-    // Write summary
-    outputStream.write('=== SUMMARY ===\n\n');
-    outputStream.write(`Total Orders: ${allOrders.length}\n\n`);
-    outputStream.write(`CHAOS:\n- Total: ${chaosSellOrders.length + chaosBuyOrders.length}\n\n`);
-    outputStream.write(`LOGOS:\n- Total: ${logosSellOrders.length + logosBuyOrders.length}\n\n`);
-    outputStream.write('=== DETAILED ORDER DATA ===\n\n');
-
     const uiOrders: LimitOrder[] = [];
     
     // Process each order
@@ -263,7 +238,6 @@ async function main() {
         const tempStream = {
           write: (data: string) => {
             output += data;
-            outputStream.write(data);  // Also write to file
           }
         };
         
@@ -413,53 +387,6 @@ async function main() {
     }
 
     // After getting all orders but before writing to file:
-    outputStream.write('=== DETAILED ORDER SUMMARY ===\n\n');
-
-    // CHAOS Summary
-    const chaosOrdersBuy = uiOrders.filter(o => 
-        o.tokenType === 'CHAOS' && o.orderType === 'BUY'
-    );
-    const chaosOrdersSell = uiOrders.filter(o => 
-        o.tokenType === 'CHAOS' && o.orderType === 'SELL'
-    );
-
-    outputStream.write('CHAOS:\n');
-    outputStream.write(`- Total Orders: ${chaosOrdersBuy.length + chaosOrdersSell.length}\n`);
-    outputStream.write('- Buy Orders:\n');
-    outputStream.write(`  • Total: ${chaosOrdersBuy.length}\n`);
-    chaosOrdersBuy.forEach(order => {
-        outputStream.write(`  • ${order.inputMint.symbol} → CHAOS: ${order.makingAmount} ${order.inputMint.symbol} for ${order.takingAmount} CHAOS\n`);
-    });
-    outputStream.write('- Sell Orders:\n');
-    outputStream.write(`  • Total: ${chaosOrdersSell.length}\n`);
-    chaosOrdersSell.forEach(order => {
-        outputStream.write(`  • CHAOS → ${order.outputMint.symbol}: ${order.makingAmount} CHAOS for ${order.takingAmount} ${order.outputMint.symbol}\n`);
-    });
-
-    // LOGOS Summary
-    const logosOrdersBuy = uiOrders.filter(o => 
-        o.tokenType === 'LOGOS' && o.orderType === 'BUY'
-    );
-    const logosOrdersSell = uiOrders.filter(o => 
-        o.tokenType === 'LOGOS' && o.orderType === 'SELL'
-    );
-
-    outputStream.write('\nLOGOS:\n');
-    outputStream.write(`- Total Orders: ${logosOrdersBuy.length + logosOrdersSell.length}\n`);
-    outputStream.write('- Buy Orders:\n');
-    outputStream.write(`  • Total: ${logosOrdersBuy.length}\n`);
-    logosOrdersBuy.forEach(order => {
-        outputStream.write(`  • ${order.inputMint.symbol} → LOGOS: ${order.makingAmount} ${order.inputMint.symbol} for ${order.takingAmount} LOGOS\n`);
-    });
-    outputStream.write('- Sell Orders:\n');
-    outputStream.write(`  • Total: ${logosOrdersSell.length}\n`);
-    logosOrdersSell.forEach(order => {
-        outputStream.write(`  • LOGOS → ${order.outputMint.symbol}: ${order.makingAmount} LOGOS for ${order.takingAmount} ${order.outputMint.symbol}\n`);
-    });
-
-    outputStream.write('\n----------------------------------------\n\n');
-
-    // Before JSON write
     console.log('\nPreparing JSON write:');
     const jsonData = {
       lastUpdate: new Date().toLocaleString('en-US', {
@@ -489,34 +416,11 @@ async function main() {
         }))
     };
 
-    fs.writeFileSync('public/limit-orders.json', JSON.stringify(jsonData, null, 2));
-
-    outputStream.end();
-    console.log('Analysis complete:');
-    console.log(`- Text output: ${outputFile}`);
-    console.log('- UI data: public/limit-orders.json');
-
-    // Return the orders
+    // Just return the orders array
     return uiOrders;
 
   } catch (error) {
     console.error('Error in analyzer:', error);
     throw error;
-  }
-}
-
-// Add proper error handling for main
-main().catch(error => {
-  console.error('Fatal error:', error);
-  process.exit(1);
-});
-
-export const runAnalyzer = async () => {
-  try {
-    const orders = await main();
-    return orders;  // Return the orders array
-  } catch (error) {
-    console.error('Error in runAnalyzer:', error);
-    throw error;  // Re-throw to be caught by API
   }
 }; 

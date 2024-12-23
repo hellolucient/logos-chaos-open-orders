@@ -1,21 +1,36 @@
 import type { VercelApiHandler } from '@vercel/node';
-import { analyzeOrders } from '../src/limitOrders/api';
+import { runAnalyzer } from '../src/limitOrders/runAnalyzer';
 
-export default async function handler(req, res) {
+const handler: VercelApiHandler = async (req, res) => {
   try {
-    console.log('Starting order analysis...');
-    const orders = await analyzeOrders();
-    console.log('Analysis complete:', { orderCount: orders?.length });
+    // Instead of writing to file, just return the data directly
+    const orders = await runAnalyzer();
     
     res.setHeader('Content-Type', 'application/json');
     res.setHeader('Cache-Control', 's-maxage=300');
     
-    return res.json({ orders });
+    // Return the same structure that was in the JSON file
+    res.json({
+      lastUpdate: new Date().toLocaleString('en-US', {
+        month: 'long',
+        day: 'numeric',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        timeZone: 'UTC',
+        hour12: false
+      }).replace(',', '') + ' +UTC',
+      orders
+    });
+
   } catch (error) {
     console.error('API Error:', error);
-    return res.status(500).json({ 
+    res.status(500).json({ 
       error: 'Failed to fetch orders',
       details: error instanceof Error ? error.message : String(error)
     });
   }
-} 
+};
+
+export default handler; 
