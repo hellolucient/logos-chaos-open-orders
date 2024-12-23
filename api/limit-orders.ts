@@ -1,5 +1,5 @@
 import type { IncomingMessage, ServerResponse } from 'http';
-import { analyzeOrders } from '../limitOrders/api';
+import { analyzeOrders } from '../src/limitOrders/api';
 
 export default async function handler(
   req: IncomingMessage,
