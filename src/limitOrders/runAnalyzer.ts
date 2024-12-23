@@ -1,5 +1,5 @@
 import { Connection, PublicKey } from '@solana/web3.js';
-import { analyzeOrder } from './orderAnalyzer.js';
+import { analyzeOrder } from './orderAnalyzer';
 import { TOKENS } from './tokenConfig';
 import { LimitOrder } from '../types/dca';
 
