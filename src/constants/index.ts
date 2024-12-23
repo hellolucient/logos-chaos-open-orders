@@ -1,1 +1,5 @@
- 
+export const JUPITER_LIMIT_PROGRAM_ID = 'JUP4Fb2cqiRUcaTHdrPC8h2gNsA2ETXiPDD33WcGuJB';
+
+export default {
+  JUPITER_LIMIT_PROGRAM_ID
+}; 
